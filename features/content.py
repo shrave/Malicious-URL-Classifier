@@ -60,10 +60,14 @@ def web_content_features(url):
         wfeatures['src_meta_cnt']=default_val
 
     return wfeatures
-    
+
 def redirect_check(url):
     r = requests.get(url)
     if len(r.history)<=1:
         return False
     else:
         return True
+def header_response(url):
+    page = urllib2.urlopen(url)
+    return page.info().headers
+#Has to be formatted.
