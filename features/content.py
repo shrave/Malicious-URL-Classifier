@@ -2,13 +2,14 @@ import urllib2
 import urllib
 from xml.dom import minidom
 import csv
-import pygeoip
-
+import pygeoip,requests
+from bs4 import BeautifulSoup
+import re
 opener = urllib2.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
 nf=-1
-def web_content_features(url):
+'''def web_content_features(url):
     wfeatures={}
     total_cnt=0
     try:
@@ -59,7 +60,10 @@ def web_content_features(url):
         wfeatures['src_embed_cnt']=default_val
         wfeatures['src_meta_cnt']=default_val
 
-    return wfeatures
+    return wfeatures'''
+def content_features_count(url,tag):
+    soup=get_page_content(url)
+    return len(soup.findAll(tag))
 
 def redirect_check(url):
     r = requests.get(url)
@@ -69,5 +73,32 @@ def redirect_check(url):
         return True
 def header_response(url):
     page = urllib2.urlopen(url)
-    return page.info().headers
-#Has to be formatted.
+    l=page.info().headers
+    d={}
+    d['Content-Type']=l[0].split('Content-Type: ')[1][:-2]
+    d['Server']=l[1].split('Server: ')[1][:-2]
+    d['X-Powered-By']=l[2].split('X-Powered-By: ')[1][:-2]
+    d['Date']=l[3].split('Date: ')[1][:-2]
+    d['Connection']=l[4].split('Connection: ')[1][:-2]
+    d['Content-Length']=l[5].split('Content-Length: ')[1][:-2]
+    return d
+
+def get_page_content(url):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    return soup
+
+def small_area_tags():
+    count=0
+    if soup.findAll('iframe', {'sy' : 'manga_img'}):
+        count=count+len(soup.findAll('a', {'class' : 'manga_img'}))
+    if soup.findAll('a', {'class' : 'manga_img'}):
+        count=count+len(soup.findAll('a', {'class' : 'manga_img'}))
+    if soup.findAll('a', {'class' : 'manga_img'}):
+        count=count+len(soup.findAll('a', {'class' : 'manga_img'}))
+
+def hyperlink_count(url):
+    website=urllib2.urlopen(url)
+    html = website.read()
+    links = len(re.findall('"((http|ftp)s?://.*?)"', html))
+    return links
