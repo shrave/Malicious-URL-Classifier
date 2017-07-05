@@ -67,7 +67,7 @@ def content_features_count(url,tag):
 
 def redirect_check(url):
     r = requests.get(url)
-    if len(r.history)<=1:
+    if len(r.history)<=1 or url.count('//')==0:
         return False
     else:
         return True
@@ -88,17 +88,12 @@ def get_page_content(url):
     soup = BeautifulSoup(r.text, 'html.parser')
     return soup
 
-def small_area_tags():
-    count=0
-    if soup.findAll('iframe', {'sy' : 'manga_img'}):
-        count=count+len(soup.findAll('a', {'class' : 'manga_img'}))
-    if soup.findAll('a', {'class' : 'manga_img'}):
-        count=count+len(soup.findAll('a', {'class' : 'manga_img'}))
-    if soup.findAll('a', {'class' : 'manga_img'}):
-        count=count+len(soup.findAll('a', {'class' : 'manga_img'}))
 
 def hyperlink_count(url):
     website=urllib2.urlopen(url)
     html = website.read()
     links = len(re.findall('"((http|ftp)s?://.*?)"', html))
     return links
+def external_javascript_file(url):
+    soup=get_page_content(url)
+    return len(soup.findAll('script', {'src'}))
