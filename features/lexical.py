@@ -1,5 +1,7 @@
 import socket
 import ipaddress
+import tldextract
+from urlparse import parse_qs, urlparse
 
 nf=-1
 def url_length(url):
@@ -15,6 +17,9 @@ def special_chars(url):
 def ratio_special_chars(url):
     count=special_chars(url)
     return float(count)/float(len(url))
+
+def token_count(url):
+    return len(getTokens(url))
 
 def getTokens(url):
 	tokensBySlash = str(url.encode('utf-8')).split('/')	#get tokens after splitting by slash
@@ -72,13 +77,27 @@ def suspicious_word_count(url):
             cnt+=1;
     return cnt
 
+def domain_name(url):
+    return tldextract.extract(url).domain
+
+def subdomain_name(url):
+    return tldextract.extract(url).subdomain
+
+def subdomain_length(url):
+    return len(subdomain_name(url))
+
+def domain_token_count(url):
+    return token_count(domain_name(url))
+def query_variables_count(url):
+    return len(parse_qs(urlparse(url).query, keep_blank_values=True))
+
+####Other functions.
 def countdelim(url):
     count = 0
     delim=[';','_','?','=','&']
     for each in url:
         if each in delim:
             count = count + 1
-
     return count
 #Suspicious_TLD=['zip','cricket','link','work','party','gq','kim','country','science','tk']
 #Suspicious_Domain=['luckytime.co.kr','mattfoll.eu.interia.pl','trafficholder.com','dl.baixaki.com.br','bembed.redtube.comr','tags.expo9.exponential.com','deepspacer.com','funad.co.kr','trafficconverter.biz']
