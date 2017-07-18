@@ -94,6 +94,8 @@ def hyperlink_count(url):
     html = website.read()
     links = len(re.findall('"((http|ftp)s?://.*?)"', html))
     return links
+
 def external_javascript_file(url):
     soup=get_page_content(url)
-    return len(soup.findAll('script', {'src'}))
+    src = [sc["src"] for sc in soup.find_all("script",src=True)]
+    return len(src)
