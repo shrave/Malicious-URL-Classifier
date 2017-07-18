@@ -3,6 +3,8 @@ import json
 from bs4 import BeautifulSoup
 from fingerprint import Fingerprint
 import re
+import unicodedata
+import math
 
 def fingerprint_function(url):
         f = Fingerprint(kgram_len=4, window_len=1, base=10, modulo=1000)
@@ -29,17 +31,36 @@ def extract_javascript_content(url):
     except:
         pass
     return content
-print extract_javascript_content("https://aviary.com/home")
 
 def strings_in_javascript(url):
     content=extract_javascript_content(url)
-    #Strings with single quote.
-    print "Single quote strings."
-    print re.findall("'([^']*)'", content)
-    #Strings with double quotes.
-    print "double quote strings."
-    print re.findall('"([^"]*)"', content)
-strings_in_javascript("https://aviary.com/home")
+    strings1= re.findall("'([^']*)'", content)
+    strings2= re.findall('"([^"]*)"', content)
+    java_string=[]
+    for i in strings2+strings1:
+        if i:
+            java_string.append(unicodedata.normalize('NFKD', i).encode('ascii','ignore'))
+    return java_string
+
+def entropy(string):
+        "Calculates the Shannon entropy of a string"
+        prob = [ float(string.count(c)) / len(string) for c in dict.fromkeys(list(string)) ]
+        entropy = - sum([ p * math.log(p) / math.log(2.0) for p in prob ])
+        return entropy
+
+def entropy_of_strings(url):
+    strings=strings_in_javascript(url)
+    ent=[]
+    for i in strings:
+        ent.append(entropy(i))
+    return ent
+
+def length_of_strings(url):
+    strings=strings_in_javascript(url)
+    arr=[]
+    arr=map(len,strings)
+    return arr
+
 def script_in_chars(url):
     content=extract_javascript_content(url)
     return len(content)
