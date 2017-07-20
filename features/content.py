@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 import re
 opener = urllib2.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+from urlparse import urlparse
+from os.path import splitext
 
 nf=-1
 '''def web_content_features(url):
@@ -99,3 +101,20 @@ def external_javascript_file(url):
     soup=get_page_content(url)
     src = [sc["src"] for sc in soup.find_all("script",src=True)]
     return len(src)
+
+def get_ext(url):
+    """Return the filename extension from url, or ''."""
+    parsed = urlparse(url)
+    root, ext = splitext(parsed.path)
+    return ext
+
+def script_with_wrong_ext(url):
+    soup=get_page_content(url)
+    try:
+        src = [sc["src"] for sc in soup.find_all("script",src=True)]
+        for i in src:
+            if get_ext(i)!='.js':
+                return 1
+    except:
+        return 0
+    return 0

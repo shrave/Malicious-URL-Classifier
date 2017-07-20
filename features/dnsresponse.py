@@ -39,7 +39,7 @@ def PTR(url):
     name, alias, addresslist = socket.gethostbyaddr(IP(url))
 
 def DNS_response(url):
-    import dns.resolver 
+    import dns.resolver
     myResolver = dns.resolver.Resolver()
     try:
         myAnswers = myResolver.query(url, "A")
@@ -50,6 +50,7 @@ def DNS_response(url):
     except:
         print "No IP resolved."
     #All IPS Adresses reolved list.
+    
 def location(url):
     if (DNS_response(url)):
         my_ip=(DNS_response(url))

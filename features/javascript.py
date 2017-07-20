@@ -32,6 +32,7 @@ def extract_javascript_content(url):
         pass
     return content
 
+print extract_javascript_content("http://www.j988.com")
 def strings_in_javascript(url):
     content=extract_javascript_content(url)
     strings1= re.findall("'([^']*)'", content)
@@ -42,6 +43,7 @@ def strings_in_javascript(url):
             java_string.append(unicodedata.normalize('NFKD', i).encode('ascii','ignore'))
     return java_string
 
+#To calculate the randomness of a string which indicates obfuscation.
 def entropy(string):
         "Calculates the Shannon entropy of a string"
         prob = [ float(string.count(c)) / len(string) for c in dict.fromkeys(list(string)) ]
@@ -61,6 +63,14 @@ def length_of_strings(url):
     arr=map(len,strings)
     return arr
 
+def string_with_iframe(url):
+    strings=strings_in_javascript(url)
+    count=0
+    for i in strings:
+        if 'iframe' in i:
+            count=count+1
+    return count
+
 def script_in_chars(url):
     content=extract_javascript_content(url)
     return len(content)
@@ -77,4 +87,3 @@ def setInterval_count(url):
 
 def setTimeout_count(url):
     return count_function('setTimeout',url)
-#print check_function('getTime',"http://google.com")
