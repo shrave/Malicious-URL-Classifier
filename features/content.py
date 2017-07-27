@@ -67,6 +67,13 @@ def content_features_count(url,tag):
     soup=get_page_content(url)
     return len(soup.findAll(tag))
 
+def content_features_attribute_count(url,tag,attribute):
+    soup=get_page_content(url)
+    return len(soup.findAll(tag, attrs = {attribute : True}))
+
+def char_count(url):
+    return len(get_page_content(url))
+
 def redirect_check(url):
     r = requests.get(url)
     if len(r.history)<=1 or url.count('//')==0:
@@ -90,14 +97,13 @@ def get_page_content(url):
     soup = BeautifulSoup(r.text, 'html.parser')
     return soup
 
-
 def hyperlink_count(url):
     website=urllib2.urlopen(url)
     html = website.read()
     links = len(re.findall('"((http|ftp)s?://.*?)"', html))
     return links
 
-def external_javascript_file(url):
+def external_javascript_file_count(url):
     soup=get_page_content(url)
     src = [sc["src"] for sc in soup.find_all("script",src=True)]
     return len(src)
@@ -118,3 +124,29 @@ def script_with_wrong_ext(url):
     except:
         return 0
     return 0
+
+def page_title(url):
+    soup=get_page_content(url)
+    try:
+        title=soup.title.string
+        return title
+    except:
+        return
+def page_title_length(url):
+    name=page_title(url)
+    if type(name)==None:
+        return 0
+    return len(name)
+
+def whitespace_count(url):
+    count=0
+    soup=get_page_content(url)
+    for i in soup:
+        if i is ' ':
+            count=count+1
+    return count
+
+def whitespace_percent(url):
+    return float(whitespace_count(url))/float(char_count(url))
+
+#print page_title_length("http://www3.02as.com")
