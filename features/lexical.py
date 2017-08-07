@@ -2,6 +2,9 @@ import socket
 import ipaddress
 import tldextract
 from urlparse import parse_qs, urlparse
+#from urllib.parse import urlparse
+from posixpath import basename, dirname
+import urlparse
 
 nf=-1
 def url_length(url):
@@ -106,7 +109,11 @@ def countSubDomain(subdomain):
         return 0
     else:
         return len(subdomain.split('.'))
+def alphabet_count(url):
+    return sum(c.isalpha() for c in url)
 
+def digit_count(url):
+    return sum(c.isdigit() for c in url)
 def countQueries(query):
     if not query:
         return 0
@@ -116,12 +123,15 @@ def countQueries(query):
 def countdots(url):
     return url.count('.')
 
+def key_value_pairs(url):
+    return dict(urlparse.parse_qs(urlparse.urlsplit(url).query))
 
 def isPresentHyphen(url):
     return url.count('-')
 
 def isPresentAt(url):
     return url.count('@')
+
 #Sub-directory count.
 def countSubDir(url):
     return url.count('/')
@@ -132,7 +142,21 @@ def get_ext(url):
     root, ext = splitext(url)
     return ext
 def get_filename(url):
-    """Return the filename extension from url, or ''."""
-
     root, ext = splitext(url)
     return root
+def URL_path(url):
+    parse_object = urlparse(url)
+    return parse_object.path
+
+def URL_scheme(url):
+    parse_object = urlparse(url)
+    return parse_object.scheme
+def path_length(url):
+    return len(URL_path(url))
+def directory_length(url):
+    return len(dirname(URL_path(url)))
+def filename(url):
+    filename=basename(URL_path(url))
+    return (filename.split('.')[0])
+def filename_length(url):
+    return len(filename(url))
