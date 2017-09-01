@@ -10,9 +10,12 @@ opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 from urlparse import urlparse
 from os.path import splitext
 from useful_methods import *
+import mechanize
+from time import sleep
 nf=-1
 
 double_doc_list=['html','head','title','body']
+filetypes_list=[".gif",".jpg",".png",".cgi",".pl",".js",".png",".png",".png"]
 '''def web_content_features(url):
     wfeatures={}
     total_cnt=0
@@ -189,3 +192,31 @@ def double_documents(url):
         if content_features_count(tag)>=2:
             count=count+1
     return count
+
+def downloadlink(l):
+    br.click_link(l)
+    return br.response().info()['Content-Length']
+
+def file_sizes_per_extension(url,filetype):
+    filetypes=[]
+    filetypes.append(filetype)
+    filesizes=[]
+    br = mechanize.Browser()
+    br.open(url)
+    f=open("source.html","w")
+    f.write(br.response().read())
+    myfiles=[]
+    for l in br.links():
+        for t in filetypes:
+            if t in str(l):
+                myfiles.append(l)
+    for l in myfiles:
+        sleep(1) #throttle so you dont hammer the site
+        filesizes.append(downloadlink(l))
+    return (min(filesizes),max(filesizes),average(filesizes))
+
+def max_min_avg_file_extensions(url):
+    file_ext_list=[]
+    for i in filetypes_list:
+        file_ext_list.append(file_sizes_per_extension(url,i))
+    return file_ext_list

@@ -25,6 +25,29 @@ def fingerprint_function(url):
         f = Fingerprint(kgram_len=4, window_len=1, base=10, modulo=1000)
         return f.generate(str=url)
 
+def one_line_code(url):
+    content=''
+    r = requests.get(url, headers={'Connection': 'close'})
+    soup = BeautifulSoup(r.content,'lxml')
+    data=soup.find('script')
+    try:
+        src = [sc["src"] for sc in soup.find_all("script",src=True)]
+        for i in src:
+            if ('http:' in i) or ('https:' in i):
+                r=requests.get(i)
+                content=content+r.text
+            else:
+                r = requests.get('http:'+i)
+                content=content+r.text
+    except:
+        pass
+    content_list=content.split('\n')
+    if len(content_list)>1 or content == '':
+        return 0
+    return 1
+
+print one_line_code('https://ravindrababuravula.com/gatexcel80.php')
+
 def extract_javascript_content(url):
     content=''
     r = requests.get(url, headers={'Connection': 'close'})
@@ -176,8 +199,8 @@ def long_variables_functions(url):
             len_list.append(len(k))
     return len(len_list)
     #long to be >35
-print dom_modification("http://www.toolani.de/")
-count=0
-for i in dom_list:
-        count=count+count_function(i,"http://www.toolani.de/")
-print count
+#print dom_modification("http://www.toolani.de/")
+#count=0
+#for i in dom_list:
+#        count=count+count_function(i,"http://www.toolani.de/")
+#print count

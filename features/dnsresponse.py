@@ -36,9 +36,6 @@ def whoisinfo(url):
     return whois.whois(url)
 
 def PTR(url):
-    #addr = reversename.from_address(IP(url))
-    addr=DNS_response(url)
-    import dns.resolver
     myResolver = dns.resolver.Resolver()
     myAnswers = myResolver.query("3.125.194.174.in-addr.arpa", "PTR")
     l=[]
@@ -47,9 +44,19 @@ def PTR(url):
     return l
     name, alias, addresslist = socket.gethostbyaddr(IP(url))
 
+def PTR_A_record(url):
+    if set(map(IP,PTR(url))) & set(DNS_response(url)):
+        return 1
+    return 0
+
+def same_ip(url):
+    if set(map(IP,PTR(url))) & set(DNS_response(url)) & set(map(IP,mailserver(url))):
+        return 1
+    return 0
+
 def resolved_ip_count(url):
     return len(DNS_response(url))
-#Name of nameserver.
+
 def nameserver(url):
     myResolver = dns.resolver.Resolver()
     try:
@@ -59,7 +66,7 @@ def nameserver(url):
             l.append(str(rdata))
         return l
     except:
-        print "No IP resolved."
+        pass
 
 def nameserver_IP(url):
     namelist=nameserver(url)
@@ -74,6 +81,8 @@ def nameserver_count(url):
 #Host IPs.
 def DNS_response(url):
     myResolver = dns.resolver.Resolver()
+    url=domain_name(url)
+    print url
     try:
         myAnswers = myResolver.query(url, "A")
         l=[]
@@ -81,33 +90,47 @@ def DNS_response(url):
             l.append(str(rdata))
         return l
     except:
-        print "No IP resolved."
+        #print "No IP resolved."
+        pass
     #All IPS Adresses reolved list.
 
 def mailserver(url):
-    def DNS_response(url):
-        myResolver = dns.resolver.Resolver()
-        try:
-            myAnswers = myResolver.query(url, "MX")
-            l=[]
-            for rdata in myAnswers: #for each response
-                l.append(str(rdata))
-            return l
-        except:
-            print "No IP resolved."
-        #All IPS Adresses reolved list.
+    myResolver = dns.resolver.Resolver()
+    try:
+        myAnswers = myResolver.query(url, "MX")
+        l=[]
+        for rdata in myAnswers: #for each response
+            l.append(str(rdata))
+        return l
+    except:
+        pass
+
+def mailserver_IP(url):
+    return set(map(IP,mailserver(url)))
+
+def reverse_IP(url):
+    ip=IP(url)
+    rev_name = reversename.from_address(ip)
+    reversed_dns = str(resolver.query(rev_name,"PTR")[0])
+    return reversed_dns
+
+#Dont put http.
 def location(url):
     if (DNS_response(url)):
         my_ip=(DNS_response(url))
         return convert_keys_to_string(ipapi.location(ip=my_ip[0], key=None, field=None))
+#Iterate through the my_ip list in ipapi.
 
-#print IP_Location('http://www.sinduscongoias.com.br/index.html')
-#print location('www.amazon.com')
-#print PTR('http://www.sinduscongoias.com.br/index.html')
-#print whoisinfo('http://www.sinduscongoias.com.br/index.html')
-#print location('amazon.in')
-#country code, netspeed,region,timezone.
-#print ASN('amazon.in')
-#print DNS_response('amazon.com')
-#print nameserver('www.amazon.com')
-#print WhoIS('www.amazon.com')
+#Rewrite proper function for it.
+def remove_http(url):
+     lines = lines.replace("http://","")
+     lines = lines.replace("www.", "") # May replace some false positives ('www.com')
+     urls = [url.split('/')[0] for url in lines.split()]
+     return urls
+
+def domain_name(url):
+    parsed_uri = urlparse(url)
+    domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    return domain
+
+def origin_destination(url):
