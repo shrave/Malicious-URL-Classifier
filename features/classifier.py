@@ -1,7 +1,7 @@
 from content import content_features_count,char_count,redirect_check,header_response,\
 hyperlink_count,external_javascript_file_count,page_title_length,script_with_wrong_ext, \
 content_features_attribute_count,whitespace_percent
-
+#Include a vector for any new xml tag.
 def classifier(url):
     raw_features=[]
     raw_features.append(

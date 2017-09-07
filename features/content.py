@@ -1,7 +1,10 @@
+import validators
+import collections
 import urllib2
 import urllib
 from xml.dom import minidom
 import csv
+from urlparse import urlparse
 import pygeoip,requests
 from bs4 import BeautifulSoup
 import re
@@ -12,6 +15,7 @@ from os.path import splitext
 from useful_methods import *
 import mechanize
 from time import sleep
+from dnsresponse import domain_name
 nf=-1
 
 double_doc_list=['html','head','title','body']
@@ -68,14 +72,6 @@ filetypes_list=[".gif",".jpg",".png",".cgi",".pl",".js",".png",".png",".png"]
         wfeatures['src_meta_cnt']=default_val
 
     return wfeatures'''
-def content_features_count(url,tag):
-    soup=get_page_content(url)
-    return len(soup.findAll(tag))
-
-def content_features_attribute_count(url,tag,attribute):
-    soup=get_page_content(url)
-    return len(soup.findAll(tag, attrs = {attribute : True}))
-
 def char_count(url):
     response = requests.get(url)
     return len(response.text)
@@ -86,6 +82,7 @@ def redirect_check(url):
         return False
     else:
         return True
+
 def header_response(url):
     page = urllib2.urlopen(url)
     l=page.info().headers
@@ -100,14 +97,35 @@ def header_response(url):
 
 def get_page_content(url):
     r = requests.get(url)
-    soup = BeautifulSoup(r.text, 'html.parser')
+    soup = BeautifulSoup(r.text, 'lxml')
     return soup
+#BeautifulSoup requires http:// at the begining of URL.
 
-def hyperlink_count(url):
+def tag_names(url):
+    soup=get_page_content(url)
+    taglist=[unicode_decode(tag.name) for tag in soup.find_all()]
+    return taglist
+
+
+def html_tag(url):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    taglist=[unicode_decode(tag.name) for tag in soup.find_all()]
+    return taglist
+
+def unknown_tags(url):
+    html_tags=set(html_tag(url))
+    all_tags=set(tag_names(url))
+    return (all_tags - html_tags)
+
+def hyperlink_list(url):
     website=urllib2.urlopen(url)
     html = website.read()
-    links = len(re.findall('"((http|ftp)s?://.*?)"', html))
+    links = (re.findall('"((http|ftp)s?://.*?)"', html))
     return links
+
+def hyperlink_count(url):
+    return len(hyperlink_list(url))
 
 def external_javascript_file_count(url):
     soup=get_page_content(url)
@@ -220,3 +238,43 @@ def max_min_avg_file_extensions(url):
     for i in filetypes_list:
         file_ext_list.append(file_sizes_per_extension(url,i))
     return file_ext_list
+
+def content_features_count(url,tag):
+    soup=get_page_content(url)
+    return len(soup.findAll(tag))
+
+def content_features_attribute_count(url,tag,attribute):
+    soup=get_page_content(url)
+    return len(soup.findAll(tag, attrs = {attribute : True}))
+
+#A tuple having same orign links and different origin links.
+#Combination of hostname, URI scheme and port number. They should match.
+
+def same_different_origin_count(url):
+    links=hyperlink_list(url)
+    origin_info=[]
+    for i in links:
+        o=urlparse(i)
+        origin_info.append((o.scheme,o.hostname,o.port))
+    counter=collections.Counter(origin_info)
+    different_origin=counter.values.count(1)
+    same_origin_count=len(origin_info)-different_origin
+    return (same_origin_count,different_origin)
+
+def origin_details(url):
+    o=urlparse(url)
+    return (o.scheme,o.hostname,o.property,o.port)
+
+def source_in_other_domain(url):
+    soup=get_page_content(url)
+    source_list=[]
+    count=0
+    sources=soup.find_all(attrs={"src":True})
+    for source in sources:
+        if validators.url(source['src']):
+            source_list.append(source['src'])
+    for link in source_list:
+        if domain_name(link)!=domain_name(url):
+            count=count+1
+    return count
+    #All the elements having different domain.

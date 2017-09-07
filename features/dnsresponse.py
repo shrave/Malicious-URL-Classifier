@@ -133,4 +133,5 @@ def domain_name(url):
     domain = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
     return domain
 
-def origin_destination(url):
+def origin_destination_location(url):
+    pass
