@@ -11,5 +11,6 @@ def convert_keys_to_string(my_dict):
 
 def average(num_list):
     return float(sum(num_list)) / max(len(num_list), 1)
+    
 def unicode_decode(string):
     return unicodedata.normalize('NFKD', string).encode('ascii','ignore')

@@ -1,3 +1,4 @@
+import re
 import pyasn,socket
 from urlparse import urlparse
 from ipwhois import IPWhois
@@ -17,6 +18,11 @@ from useful_methods import convert_keys_to_string
 results={}
 def host(url):
     return urlparse(url).hostname
+
+def hostname(url):
+    p = '(?:http.*://)?(?P<host>[^:/ ]+).?(?P<port>[0-9]*).*'
+    m = re.search(p,'http://www.google.in')
+    return m.group('host')
 
 def IP(url):
     return socket.gethostbyname(url)

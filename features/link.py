@@ -10,9 +10,10 @@ from urlparse import urlsplit
 import seolib as seo
 
 nf=-1
+#needs https/http at the begining for input.
 def sitepopularity(url):
     alexa_rank = seo.get_alexa(url)
-    if alexa_rank==None:
+    if alexa_rank:
         return alexa_rank
     else:
         return 100000000

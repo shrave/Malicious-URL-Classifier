@@ -1,10 +1,20 @@
 import socket
 import ipaddress
 import tldextract
-from urlparse import parse_qs, urlparse
-#from urllib.parse import urlparse
+from urlparse import parse_qs
+from urlparse import urlparse
 from posixpath import basename, dirname
 import urlparse
+from useful_methods import unicode_decode
+import re
+from glob import glob
+
+f=open('blacklists.txt', 'r')
+black_list=f.read().split()
+for word in black_list:
+    if type(word) != str:
+        word=unicode_decode(word)
+delim=['-','.','_','~',':','/','?','#','[',']','@','!','$','&,''','(',')','*','+',',',';','=','`','.']
 
 nf=-1
 def url_length(url):
@@ -91,13 +101,17 @@ def subdomain_length(url):
 
 def domain_token_count(url):
     return token_count(domain_name(url))
+
 def query_variables_count(url):
-    return len(parse_qs(urlparse(url).query, keep_blank_values=True))
+    return len(parse_qs(urlparse.urlparse(url).query, keep_blank_values=True))
+
+def max_length_variable(url):
+    k=(parse_qs(urlparse.urlparse(url).query, keep_blank_values=True))
+    return max(len(w) for w in k.keys())
 
 ####Other functions.
 def countdelim(url):
     count = 0
-    delim=[';','_','?','=','&']
     for each in url:
         if each in delim:
             count = count + 1
@@ -114,6 +128,7 @@ def alphabet_count(url):
 
 def digit_count(url):
     return sum(c.isdigit() for c in url)
+
 def countQueries(query):
     if not query:
         return 0
@@ -123,8 +138,15 @@ def countQueries(query):
 def countdots(url):
     return url.count('.')
 
+def count_at_symbol(url):
+    return url.count('@')+url.count('-')
+
+#These are the key value pairs of the argument in the URL.
 def key_value_pairs(url):
     return dict(urlparse.parse_qs(urlparse.urlsplit(url).query))
+
+def argument_length(url):
+    return len(urlparse.urlsplit(url).query)
 
 def isPresentHyphen(url):
     return url.count('-')
@@ -141,22 +163,65 @@ def get_ext(url):
 
     root, ext = splitext(url)
     return ext
+
 def get_filename(url):
     root, ext = splitext(url)
     return root
+
 def URL_path(url):
-    parse_object = urlparse(url)
+    parse_object = urlparse.urlparse(url)
     return parse_object.path
 
 def URL_scheme(url):
     parse_object = urlparse(url)
     return parse_object.scheme
+
 def path_length(url):
     return len(URL_path(url))
+
 def directory_length(url):
     return len(dirname(URL_path(url)))
+
+def sub_directory(url):
+    path=URL_path(url)
+    dirname_path=dirname(URL_path(url))
+    path=path.replace(dirname_path, '')
+    return path
+
+def sub_directory_special_count(url):
+    count=0
+    sub_path=sub_directory(url).strip("/")
+    for lim in delim:
+        if lim in sub_path:
+            count=count+sub_path.count(lim)
+    return count
+
+def sub_directory_tokens_count(url):
+    path= sub_directory(url)
+    tokens=re.split('\W+',path)
+    tokens = filter(None, tokens)
+    return len(tokens)
+
 def filename(url):
     filename=basename(URL_path(url))
     return (filename.split('.')[0])
+
 def filename_length(url):
     return len(filename(url))
+
+def port_number(url):
+    o=urlparse.urlparse(url)
+    if o.port:
+        return 1
+    return 0
+
+
+def blacklisted_word_present(url):
+    for word in black_list:
+        if word in url:
+            return 1
+    return 0
+
+def longest_token_path(url):
+    tokens=getTokens(URL_path(url))
+    return max(len(w) for w in tokens)

@@ -1,4 +1,8 @@
+import re
+import ssl, socket
 import requests
+from dnsresponse import host
+from useful_methods import unicode_decode
 def redirect_count_with_warning(url):
     r = requests.get(url)
     return (r.history)
@@ -12,17 +16,32 @@ def download_packet_length(url):
     response = requests.get(url)
     return len(response.content)
 
-print redirect_count_with_warning('http://utility.baidu.com/traf/click.php?id=215&url=https://log0.wordpress.com')
+def certificate(url):
+    hostname = host(url)
+    ctx = ssl.create_default_context()
+    s = ctx.wrap_socket(socket.socket(), server_hostname=hostname)
+    s.connect((hostname, 443))
+    cert = s.getpeercert()
+    return cert
+    #Returns a dict/json of all info about the cert and issuer.
 
-import ssl, socket
+def start_end_cert(url):
+    cert=certificate(url)
+    start_date = cert['notBefore']
+    end_date=cert['notAfter']
+    return (unicode_decode(start_date),(end_date))
 
-hostname = 'google.com'
-ctx = ssl.create_default_context()
-s = ctx.wrap_socket(socket.socket(), server_hostname=hostname)
-s.connect((hostname, 443))
-cert = s.getpeercert()
+def host_components_count(url):
+    name=host(url)
+    return len(re.findall(r"[\w']+", name))
 
-subject = dict(x[0] for x in cert['subject'])
-issued_to = subject['commonName']
-issuer = dict(x[0] for x in cert['issuer'])
-issued_by = issuer['commonName']
+
+def details_CA_issuer(url):
+    cert=certificate(url)
+    issuer = dict(x[0] for x in cert['issuer'])
+    issuer_details={}
+    issuer_details['issued_by'] = issuer['commonName']
+    issuer_details['organisationName']=issuer['organisationName']
+    issuer_details['organisationalUnitname']=issuer['organizationalUnitName']
+    issuer_details['countryName']=issuer['countryName']
+    return issuer_details
