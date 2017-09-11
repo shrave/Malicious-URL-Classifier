@@ -21,7 +21,7 @@ def host(url):
 
 def hostname(url):
     p = '(?:http.*://)?(?P<host>[^:/ ]+).?(?P<port>[0-9]*).*'
-    m = re.search(p,'http://www.google.in')
+    m = re.search(p,url)
     return m.group('host')
 
 def IP(url):

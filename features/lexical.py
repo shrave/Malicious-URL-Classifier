@@ -8,7 +8,7 @@ import urlparse
 from useful_methods import unicode_decode
 import re
 from glob import glob
-
+from dnsresponse import hostname
 f=open('blacklists.txt', 'r')
 black_list=f.read().split()
 for word in black_list:
@@ -34,35 +34,6 @@ def ratio_special_chars(url):
 def token_count(url):
     return len(getTokens(url))
 
-def getTokens(url):
-	tokensBySlash = str(url.encode('utf-8')).split('/')	#get tokens after splitting by slash
-	allTokens = []
-	for i in tokensBySlash:
-		tokens = str(i).split('-')	#get tokens after splitting by dash
-		tokensByDot = []
-		for j in range(0,len(tokens)):
-			tempTokens = str(tokens[j]).split('.')	#get tokens after splitting by dot
-			tokensByDot = tokensByDot + tempTokens
-		allTokens = allTokens + tokens + tokensByDot
-	allTokens = list(set(allTokens))	#remove redundant tokens
-	if 'com' in allTokens:
-		allTokens.remove('com')	#removing .com since it occurs a lot of times and it should not be included in our features
-	return allTokens
-
-#Code for average length, token count and max length token from given list.
-'''        no_ele=sum_len=largest=0
-        for ele in allTokens:
-                l=len(ele)
-                sum_len+=l
-                if l>0:                                        ## for empty element exclusion in average length
-                        no_ele+=1
-                if largest<l:
-                        largest=l
-        try:
-            return [float(sum_len)/no_ele,no_ele,largest]
-        except:
-            return [0,no_ele,largest]
-'''
 def Presence_of_IP(url):
     tokens_words=getTokens(url)
     #print tokens_words
@@ -78,7 +49,7 @@ def Presence_of_IP(url):
         return True
     return False
 
-def bag_of_words(url):
+def getTokens(url):
     return re.split('\W+',url)
 
 def suspicious_word_count(url):
@@ -173,8 +144,13 @@ def URL_path(url):
     return parse_object.path
 
 def URL_scheme(url):
-    parse_object = urlparse(url)
+    parse_object = urlparse.urlparse(url)
     return parse_object.scheme
+
+    def scheme_http_or_not(url):
+        if URL_scheme(url)=='http' or URL_scheme(url)=='https':
+            return 1
+        return 0
 
 def path_length(url):
     return len(URL_path(url))
@@ -215,7 +191,6 @@ def port_number(url):
         return 1
     return 0
 
-
 def blacklisted_word_present(url):
     for word in black_list:
         if word in url:
@@ -225,3 +200,30 @@ def blacklisted_word_present(url):
 def longest_token_path(url):
     tokens=getTokens(URL_path(url))
     return max(len(w) for w in tokens)
+
+def hyphens_instead_dots_domain(url):
+    domain=domain_name(url)
+    if domain.count('-')>domain.count('.'):
+        return 1
+    return 0
+
+def hostname_unicode(url):
+    host_name=hostname(url)
+    if type(host_name) is unicode:
+        return 1
+    for s in host_name:
+        if type(s) is unicode:
+            return 1
+    return 0
+
+def another_char_hostname(url):
+    host_name=hostname(url)
+    print host_name
+    char='.'
+    for dl in delim:
+        if (host_name.count(dl))>host_name.count(char):
+            if dl!='.':
+                char=dl
+    if char=='.':
+        return 0
+    return 1

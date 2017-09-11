@@ -3,6 +3,9 @@ import ssl, socket
 import requests
 from dnsresponse import host
 from useful_methods import unicode_decode
+from tld import get_tld
+from lexical import subdomain_name
+
 def redirect_count_with_warning(url):
     r = requests.get(url)
     return (r.history)
@@ -45,3 +48,13 @@ def details_CA_issuer(url):
     issuer_details['organisationalUnitname']=issuer['organizationalUnitName']
     issuer_details['countryName']=issuer['countryName']
     return issuer_details
+
+def TLD_presence(url):
+    if get_tld(url, fix_protocol=True,fail_silently=True):
+        return 1
+    return 0
+
+def subdomain_presence(url):
+    if subdomain_name(url):
+        return 1
+    return 0
