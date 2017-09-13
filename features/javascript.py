@@ -70,7 +70,6 @@ def extract_javascript_content(url):
         pass
     return content
 
-#print extract_javascript_content("http://www.toolani.de/")
 def avg_line_length_script(url):
     script=extract_javascript_content(url)
     line_list=script.split('\n')

@@ -9,6 +9,7 @@ from useful_methods import unicode_decode
 import re
 from glob import glob
 from dnsresponse import hostname
+
 f=open('blacklists.txt', 'r')
 black_list=f.read().split()
 for word in black_list:
@@ -16,7 +17,6 @@ for word in black_list:
         word=unicode_decode(word)
 delim=['-','.','_','~',':','/','?','#','[',']','@','!','$','&,''','(',')','*','+',',',';','=','`','.']
 
-nf=-1
 def url_length(url):
     return len(url)
 
@@ -46,8 +46,8 @@ def Presence_of_IP(url):
         except:
             pass
     if cnt>0:
-        return True
-    return False
+        return 1
+    return 0
 
 def getTokens(url):
     return re.split('\W+',url)

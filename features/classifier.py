@@ -1,12 +1,13 @@
-from content import content_features_count,char_count,redirect_check,header_response,\
-hyperlink_count,external_javascript_file_count,page_title_length,script_with_wrong_ext, \
-content_features_attribute_count,whitespace_percent
-#Include a vector for any new xml tag.
+from content import *
+
 def classifier(url):
     raw_features=[]
     raw_features.append(
     (
+    content_features_count(url,'iframe'),
+    content_features_count(url,'script'),
     redirect_check(url),
+    line_count(url),
     hyperlink_count(url),
     content_features_count(url,'html'),
     content_features_count(url,'applet'),

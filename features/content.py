@@ -28,22 +28,24 @@ def char_count(url):
 def redirect_check(url):
     r = requests.get(url)
     if len(r.history)<=1 or url.count('//')==0:
-        return False
+        return 0
     else:
-        return True
+        return 1
 
 def header_response(url):
     page = urllib2.urlopen(url)
     l=page.info().headers
+    print l
     d={}
-    d['Content-Type']=l[0].split('Content-Type: ')[1][:-2]
-    d['Server']=l[1].split('Server: ')[1][:-2]
-    d['X-Powered-By']=l[2].split('X-Powered-By: ')[1][:-2]
-    d['Date']=l[3].split('Date: ')[1][:-2]
-    d['Connection']=l[4].split('Connection: ')[1][:-2]
+    d['Content-Type']=l[3].split('Content-Type: ')[1][:-2]
+    d['Server']=l[5].split('Server: ')[1][:-2]
+    d['X-Powered-By']=l[7].split('X-Frame-Options: ')[1][:-2]
+    d['Date']=l[0].split('Date: ')[1][:-2]
+    d['Connection']=l[-1].split('Connection: ')[1][:-2]
     d['Content-Length']=l[5].split('Content-Length: ')[1][:-2]
     return d
 
+print header_response("https://www.google.com")
 def get_page_content(url):
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'lxml')
@@ -126,8 +128,8 @@ def visible(element):
     if element.parent.name in ['style', 'script', '[document]']:
         return False
     elif re.match('<!--.*-->', str(element.encode('utf-8'))):
-        return False
-    return True
+        return 0
+    return 1
 
 def text_in_content(url):
     soup = get_page_content(url)
@@ -227,3 +229,11 @@ def source_in_other_domain(url):
             count=count+1
     return count
     #All the elements having different domain.
+
+def line_count(url):
+    r = requests.get(url, stream = True)
+    count=0
+    for i in r.iter_lines():
+        if i:
+            count=count+1
+    return count
