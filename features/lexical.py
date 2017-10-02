@@ -73,13 +73,17 @@ def subdomain_length(url):
 def domain_token_count(url):
     return token_count(domain_name(url))
 
+def longest_domain_token_count(url):
+    return max(getTokens(url))
+
 def query_variables_count(url):
     return len(parse_qs(urlparse.urlparse(url).query, keep_blank_values=True))
 
 def max_length_variable(url):
     k=(parse_qs(urlparse.urlparse(url).query, keep_blank_values=True))
-    return max(len(w) for w in k.keys())
-
+    if k.keys():
+        return max(len(w) for w in k.keys() if w)
+    return 0
 ####Other functions.
 def countdelim(url):
     count = 0
@@ -147,10 +151,10 @@ def URL_scheme(url):
     parse_object = urlparse.urlparse(url)
     return parse_object.scheme
 
-    def scheme_http_or_not(url):
-        if URL_scheme(url)=='http' or URL_scheme(url)=='https':
-            return 1
-        return 0
+def scheme_http_or_not(url):
+    if URL_scheme(url)=='http' or URL_scheme(url)=='https':
+        return 1
+    return 0
 
 def path_length(url):
     return len(URL_path(url))
@@ -187,10 +191,12 @@ def filename_length(url):
 
 def port_number(url):
     o=urlparse.urlparse(url)
-    if o.port:
+    #print o.port
+    if o.port != None:
         return 1
     return 0
 
+#print port_number('www.google.com')
 def blacklisted_word_present(url):
     for word in black_list:
         if word in url:
@@ -218,7 +224,7 @@ def hostname_unicode(url):
 
 def another_char_hostname(url):
     host_name=hostname(url)
-    print host_name
+    #print host_name
     char='.'
     for dl in delim:
         if (host_name.count(dl))>host_name.count(char):

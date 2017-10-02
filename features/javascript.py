@@ -46,9 +46,8 @@ def one_line_code(url):
         return 0
     return 1
 
-print one_line_code('https://ravindrababuravula.com/gatexcel80.php')
-
 def extract_javascript_content(url):
+    url = 'http://' + url
     content=''
     r = requests.get(url, headers={'Connection': 'close'})
     soup = BeautifulSoup(r.content,'lxml')

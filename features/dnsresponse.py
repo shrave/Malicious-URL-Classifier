@@ -61,6 +61,8 @@ def same_ip(url):
     return 0
 
 def resolved_ip_count(url):
+    if DNS_response(url) == None:
+        return 0
     return len(DNS_response(url))
 
 def nameserver(url):
@@ -83,6 +85,8 @@ def nameserver_IP(url):
     return l
 
 def nameserver_count(url):
+    if nameserver(url) == None:
+        return 0
     return len(nameserver(url))
 #Host IPs.
 def DNS_response(url):
@@ -111,9 +115,10 @@ def mailserver(url):
     except:
         pass
 
+print mailserver('https://tools.ietf.org/html/draft-ietf-uri-url-mailserver')
 def mailserver_IP(url):
-    return set(map(IP,mailserver(url)))
-
+    return (map(IP,mailserver(url)))
+#print mailserver_IP('www.google.com')
 def reverse_IP(url):
     ip=IP(url)
     rev_name = reversename.from_address(ip)

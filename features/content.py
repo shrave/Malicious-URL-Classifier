@@ -22,10 +22,12 @@ double_doc_list=['html','head','title','body']
 filetypes_list=[".gif",".jpg",".png",".cgi",".pl",".js",".png",".png",".png"]
 
 def char_count(url):
+    url = 'http://' + url
     response = requests.get(url)
     return len(response.text)
 
 def redirect_check(url):
+    url = 'http://' + url
     r = requests.get(url)
     if len(r.history)<=1 or url.count('//')==0:
         return 0
@@ -33,20 +35,17 @@ def redirect_check(url):
         return 1
 
 def header_response(url):
+    url = "http://" + url
     page = urllib2.urlopen(url)
     l=page.info().headers
-    print l
     d={}
-    d['Content-Type']=l[3].split('Content-Type: ')[1][:-2]
-    d['Server']=l[5].split('Server: ')[1][:-2]
-    d['X-Powered-By']=l[7].split('X-Frame-Options: ')[1][:-2]
-    d['Date']=l[0].split('Date: ')[1][:-2]
-    d['Connection']=l[-1].split('Connection: ')[1][:-2]
-    d['Content-Length']=l[5].split('Content-Length: ')[1][:-2]
+    for i in l:
+        items = i.split(':')
+        d[items[0]] = i.replace(items[0]+':',"")
     return d
 
-print header_response("https://www.google.com")
 def get_page_content(url):
+    url = 'http://' + url
     r = requests.get(url)
     soup = BeautifulSoup(r.text, 'lxml')
     return soup
@@ -70,14 +69,19 @@ def unknown_tags(url):
     return (all_tags - html_tags)
 
 def hyperlink_list(url):
+    url = 'http://' + url
     website=urllib2.urlopen(url)
     html = website.read()
     links = (re.findall('"((http|ftp)s?://.*?)"', html))
-    return links
+    links_list = []
+    for i in links:
+        links_list.append(i[0])
+    return links_list
 
+#print hyperlink_list('www.google.com')
 def hyperlink_count(url):
     return len(hyperlink_list(url))
-
+#print hyperlink_count('http://www.google.com')
 def external_javascript_file_count(url):
     soup=get_page_content(url)
     src = [sc["src"] for sc in soup.find_all("script",src=True)]
@@ -107,6 +111,7 @@ def page_title(url):
         return title
     except:
         return
+
 def page_title_length(url):
     name=page_title(url)
     if type(name)==None:
@@ -140,7 +145,7 @@ def text_in_content(url):
 
 def suspicious_content_tag(url):
     text=text_in_content(url)
-    print text
+    #print text
     #We check if this content corresponds to a shell code by:
     #If longer than 128 chars and less than 5% whitespace.
     #Output is a count of tags with these huerisitics.
@@ -158,7 +163,7 @@ def suspicious_content_tag(url):
 def double_documents(url):
     count=0
     for tag in double_doc_list:
-        if content_features_count(tag)>=2:
+        if content_features_count(url,tag)>=2:
             count=count+1
     return count
 
@@ -171,6 +176,8 @@ def file_sizes_per_extension(url,filetype):
     filetypes.append(filetype)
     filesizes=[]
     br = mechanize.Browser()
+    br.set_handle_robots(False)
+    url = 'http://' + url
     br.open(url)
     f=open("source.html","w")
     f.write(br.response().read())
@@ -182,7 +189,10 @@ def file_sizes_per_extension(url,filetype):
     for l in myfiles:
         sleep(1) #throttle so you dont hammer the site
         filesizes.append(downloadlink(l))
-    return (min(filesizes),max(filesizes),average(filesizes))
+    if filesizes:
+        return (min(filesizes),max(filesizes),average(filesizes))
+    else:
+        return (0,0,0)
 
 def max_min_avg_file_extensions(url):
     file_ext_list=[]
@@ -207,11 +217,14 @@ def same_different_origin_count(url):
     for i in links:
         o=urlparse(i)
         origin_info.append((o.scheme,o.hostname,o.port))
-    counter=collections.Counter(origin_info)
-    different_origin=counter.values.count(1)
-    same_origin_count=len(origin_info)-different_origin
-    return (same_origin_count,different_origin)
+    '''counter=collections.Counter(origin_info)
+    different_origin=counter.values.count(1)'''
+    different_origin=list(set(origin_info))
+    #unique origins
+    same_origin_count=len(origin_info)-len(different_origin)
+    return (same_origin_count,len(different_origin) )
 
+#print same_different_origin_count('www.google.com')
 def origin_details(url):
     o=urlparse(url)
     return (o.scheme,o.hostname,o.property,o.port)
@@ -231,9 +244,43 @@ def source_in_other_domain(url):
     #All the elements having different domain.
 
 def line_count(url):
+    url = 'http://' + url
     r = requests.get(url, stream = True)
     count=0
     for i in r.iter_lines():
         if i:
             count=count+1
+    return count
+
+def web_page_size(url):
+    url = 'http://' + url
+    try:
+        response = urllib2.urlopen(url)
+    except urllib2.HTTPError, e:
+        print e.code
+    except urllib2URLError, e:
+        print e.args
+    return len(response.read())
+
+def script_percentage(url):
+    soup =  get_page_content(url)
+    text = soup.findAll('script')
+    url = 'http://' + url
+    response = requests.get(url)
+    scr = response.content
+    count = 0
+    coun1 = 0
+    for i in scr:
+        count = count + 1
+    text = str(text)
+    for i in text:
+        coun1 = coun1 + 1
+    return (float(coun1)/float(count))*100
+
+delimiter_list= ["/", "?", ".", "=", "-","_"]
+def delimiter_count(url):
+    count = 0
+    for i in delimiter_list:
+        if i in url:
+            count = count + 1
     return count
