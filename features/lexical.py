@@ -16,7 +16,7 @@ for word in black_list:
     if type(word) != str:
         word=unicode_decode(word)
 delim=['-','.','_','~',':','/','?','#','[',']','@','!','$','&,''','(',')','*','+',',',';','=','`','.']
-
+#The list of delimiters used in the analyses.
 def url_length(url):
     return len(url)
 
